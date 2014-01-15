@@ -14,15 +14,11 @@
 
 package com.mobsandgeeks.saripaar;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.widget.Checkable;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.mobsandgeeks.saripaar.annotation.Checked;
@@ -33,7 +29,13 @@ import com.mobsandgeeks.saripaar.annotation.NumberRule;
 import com.mobsandgeeks.saripaar.annotation.Password;
 import com.mobsandgeeks.saripaar.annotation.Regex;
 import com.mobsandgeeks.saripaar.annotation.Required;
+import com.mobsandgeeks.saripaar.annotation.Select;
 import com.mobsandgeeks.saripaar.annotation.TextRule;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class contains {@code static} methods that return appropriate {@link Rule}s for Saripaar
@@ -41,9 +43,9 @@ import com.mobsandgeeks.saripaar.annotation.TextRule;
  *
  * @author Ragunath Jawahar <rj@mobsandgeeks.com>
  */
-class AnnotationToRuleConverter {
+class AnnotationRuleFactory {
     // Debug
-    static final String TAG = AnnotationToRuleConverter.class.getSimpleName();
+    static final String TAG = "AnnotationToRuleConverter";
  
     // Constants
     static final String WARN_TEXT = "%s - @%s can only be applied to TextView and " +
@@ -51,34 +53,55 @@ class AnnotationToRuleConverter {
     static final String WARN_CHECKABLE = "%s - @%s can only be applied to Checkable, " +
             "its implementations and subclasses.";
 
-    public static Rule<?> getRule(Field field, View view, Annotation annotation) {
-        Class<?> annotationClass = annotation.getClass();
+    static final String WARN_SPINNER = "%s - @%s can only be applied to Spinner, " +
+            "its implementations and subclasses.";
 
-        if (Required.class.isAssignableFrom(annotationClass)) {
-            return getRequiredRule(field, view, (Required) annotation);
-        } else if (Checked.class.isAssignableFrom(annotationClass)) {
+    public static Rule<?> getRule(Field field, View view, Annotation annotation) {
+        Class<?> annotationType = annotation.annotationType();
+
+        if (Checked.class.equals(annotationType)) {
             return getCheckedRule(field, view, (Checked) annotation);
-        } else if (TextRule.class.isAssignableFrom(annotationClass)) {
+        } else if (Required.class.equals(annotationType)) {
+            return getRequiredRule(field, view, (Required) annotation);
+        } else if (TextRule.class.equals(annotationType)) {
             return getTextRule(field, view, (TextRule) annotation);
-        } else if (Regex.class.isAssignableFrom(annotationClass)) {
+        } else if (Regex.class.equals(annotationType)) {
             return getRegexRule(field, view, (Regex) annotation);
-        } else if (NumberRule.class.isAssignableFrom(annotationClass)) {
+        } else if (NumberRule.class.equals(annotationType)) {
             return getNumberRule(field, view, (NumberRule) annotation);
-        } else if (Password.class.isAssignableFrom(annotationClass)) {
+        } else if (Password.class.equals(annotationType)) {
             return getPasswordRule(field, view, (Password) annotation);
-        } else if (Email.class.isAssignableFrom(annotationClass)) {
+        } else if (Email.class.equals(annotationType)) {
             return getEmailRule(field, view, (Email) annotation);
-        } else if (IpAddress.class.isAssignableFrom(annotationClass)) {
+        } else if (IpAddress.class.equals(annotationType)) {
             return getIpAddressRule(field, view, (IpAddress) annotation);
+        } else if (Select.class.equals(annotationType)) {
+            return getSelectRule(field, view, (Select) annotation);
         }
 
         return null;
     }
 
-    public static Rule<?> getRule(Field field, View view, Annotation annotation, Object... params) {
-        Class<?> annotationClass = annotation.getClass();
+    private static Rule<Spinner> getSelectRule(Field field, View view, Select select) {
+        if (!Spinner.class.isAssignableFrom(view.getClass())) {
+            Log.w(TAG, String.format(WARN_SPINNER, field.getName(),
+                    Spinner.class.getSimpleName()));
+            return null;
+        }
 
-        if (ConfirmPassword.class.isAssignableFrom(annotationClass)) {
+        int messageResId = select.messageResId();
+        String message = messageResId != 0 ? view.getContext().getString(messageResId) :
+                select.message();
+
+        int unexpectedSelection = select.defaultSelection();
+
+        return Rules.spinnerNotEq(message, unexpectedSelection);
+    }
+
+    public static Rule<?> getRule(Field field, View view, Annotation annotation, Object... params) {
+        Class<?> annotationType = annotation.annotationType();
+
+        if (ConfirmPassword.class.equals(annotationType)) {
             TextView passwordTextView = (TextView) params[0];
             return getConfirmPasswordRule(field, view, (ConfirmPassword) annotation,
                     passwordTextView);
@@ -255,7 +278,9 @@ class AnnotationToRuleConverter {
                 Rules.regex(message, Rules.REGEX_IP_ADDRESS, true));
     }
 
-    private static Rule<Checkable> getCheckedRule(Field field, View view, Checked checked) {
+    private static Rule<Checkable> getCheckedRule(
+            Field field, View view, Checked checked) {
+
         if (!Checkable.class.isAssignableFrom(view.getClass())) {
             Log.w(TAG, String.format(WARN_CHECKABLE, field.getName(),
                     Checked.class.getSimpleName()));

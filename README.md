@@ -88,6 +88,20 @@ registerButton.setOnClickListener(new OnClickListener() {
 ```
 The `Validator.validate()` call runs the validations and returns the result via appropriate callbacks on the `ValidationListener`. You can run validations on a background `AsyncTask` by calling the `Validator.validateAsync()` method.
 
+Maven
+---------------------
+    <dependency>
+        <groupId>com.mobsandgeeks</groupId>
+        <artifactId>android-saripaar</artifactId>
+        <version>1.0.2</version>
+    </dependency>
+
+Gradle
+---------------------
+    dependencies {
+        compile 'com.mobsandgeeks:android-saripaar:1.0.2'
+    }
+
 Wiki
 ---------------------
 Please visit the [wiki] for a complete guide on Android Saripaar.
@@ -118,3 +132,7 @@ License
   [Validator]: https://github.com/ragunathjawahar/android-saripaar/blob/master/src/com/mobsandgeeks/saripaar/Validator.java
   [ValidationListener]: https://github.com/ragunathjawahar/android-saripaar/blob/master/src/com/mobsandgeeks/saripaar/Validator.java
   [wiki]: https://github.com/ragunathjawahar/android-saripaar/wiki
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ragunathjawahar/android-saripaar/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
