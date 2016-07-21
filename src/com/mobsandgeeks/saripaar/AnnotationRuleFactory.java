@@ -45,7 +45,7 @@ import java.util.List;
  */
 class AnnotationRuleFactory {
     // Debug
-    static final String TAG = "AnnotationToRuleConverter";
+    static final String TAG = "AnnotationToRuleConvert";
  
     // Constants
     static final String WARN_TEXT = "%s - @%s can only be applied to TextView and " +
